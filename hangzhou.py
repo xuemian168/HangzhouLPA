@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import webbrowser
 
 import requests
 
@@ -148,11 +149,12 @@ if __name__ == '__main__':
             getjpg()
         else:
             print("出了点问题")
-    if select != "1" or select != "2" or select != "3":
+    if select != "1" and select != "2" and select != "3":
         print("输入有误请重新输入")
     getproject(select)
     if select == "3":
         writecsv()
         downloadjpg()
         clean()
+    webbrowser.open_new('https://xuemian168.com')
     input('\n运行完毕，按下“回车(Enter)关闭程序...”')
