@@ -37,13 +37,12 @@ CONFIG = {
     'infotype_id': 'Y001C001',
     'div_id': 'div1229106886',
     'headers': {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
-        'Cookie': 'JSESSIONID=16C8B6FE3099D92E34BB4AD8DB1B489A;Path=/zwdt_public;HttpOnly',
-        'Referer': 'https://www.yuhang.gov.cn/col/col1229191870/index.html?number=Y001C001',
-        'Host': 'www.yuhang.gov.cn',
-        'X-Requested-With': 'XMLHttpRequest',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-ch-ua': '"Chromium";v="106", "Microsoft Edge";v="106", "Not;A=Brand";v="99"'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
     },
     'output_dirs': {
         'projects': './yuhang_projects',  # 按项目组织的主目录
@@ -297,7 +296,7 @@ def extract_file_urls(session: requests.Session, project_url: str) -> List[Tuple
     return file_urls
 
 
-def download_file(session: requests.Session, url: str, save_path: Path) -> bool:
+def download_file(session: requests.Session, url: str, save_path: Path, referer: str = None) -> bool:
     """
     下载单个文件
 
@@ -305,24 +304,37 @@ def download_file(session: requests.Session, url: str, save_path: Path) -> bool:
         session: requests.Session 对象
         url: 文件 URL
         save_path: 保存路径
+        referer: 引用页面URL（用于设置Referer头）
 
     Returns:
         是否下载成功
     """
-    response = download_with_retry(session, url)
+    # 为下载设置临时headers
+    original_referer = session.headers.get('Referer')
+    if referer:
+        session.headers['Referer'] = referer
 
-    if response:
-        try:
-            save_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(save_path, 'wb') as f:
-                f.write(response.content)
-            logger.info(f"下载成功: {save_path.name}")
-            return True
-        except Exception as e:
-            logger.error(f"保存文件失败: {save_path}, 错误: {e}")
+    try:
+        response = download_with_retry(session, url)
+
+        if response:
+            try:
+                save_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(save_path, 'wb') as f:
+                    f.write(response.content)
+                logger.info(f"下载成功: {save_path.name}")
+                return True
+            except Exception as e:
+                logger.error(f"保存文件失败: {save_path}, 错误: {e}")
+                return False
+        else:
             return False
-    else:
-        return False
+    finally:
+        # 恢复原始Referer
+        if original_referer:
+            session.headers['Referer'] = original_referer
+        elif 'Referer' in session.headers:
+            del session.headers['Referer']
 
 
 # ========== 文件解压函数 ==========
@@ -442,8 +454,8 @@ def process_project(session: requests.Session, project_name: str,
         file_name = f"{clean_name}_{idx}.{file_suffix}"
         file_path = raw_dir / file_name
 
-        # 下载文件
-        if download_file(session, file_url, file_path):
+        # 下载文件（传入项目URL作为Referer）
+        if download_file(session, file_url, file_path, referer=project_url):
             # 记录文件信息
             metadata['files'].append({
                 'filename': file_name,
