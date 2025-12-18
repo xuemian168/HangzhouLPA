@@ -236,6 +236,7 @@ class Application:
     def run(self):
         """运行主程序"""
         self._print_header()
+        self._show_disclaimer()
 
         # 获取项目列表
         projects = self.scraper.get_project_list()
@@ -314,6 +315,29 @@ class Application:
         print("杭州市规划和自然资源局项目爬虫")
         print("=" * 50)
         print("© XueMian168.Com")
+        print()
+
+    @staticmethod
+    def _show_disclaimer():
+        """显示免责声明并要求用户确认"""
+        print("⚠️  重要免责声明")
+        print("=" * 50)
+        print("本工具仅供学习、研究和实验目的使用")
+        print()
+        print("1. 下载的数据必须在 24 小时内删除")
+        print("2. 仅用于技术学习和研究,不得商业使用")
+        print("3. 使用者需遵守相关法律法规和网站服务条款")
+        print("4. 使用本工具的风险由使用者自行承担")
+        print("5. 请尊重数据版权,不得擅自传播或出售")
+        print()
+        print("使用本工具即表示您已阅读并同意上述声明")
+        print("=" * 50)
+        print()
+
+        response = input("是否同意并继续? (y/n): ").strip().lower()
+        if response not in ['y', 'yes', '是']:
+            print("\n程序已取消")
+            exit(0)
         print()
 
 
