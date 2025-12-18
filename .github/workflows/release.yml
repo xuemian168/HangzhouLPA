@@ -39,14 +39,12 @@ jobs:
 
             #### 杭州市规划局爬虫
             - **Windows**: `hangzhou-windows.exe`
-            - **macOS (Intel)**: `hangzhou-macos-intel`
-            - **macOS (Apple Silicon)**: `hangzhou-macos-arm64`
+            - **macOS**: `hangzhou-macos-arm64`
             - **Linux**: `hangzhou-linux`
 
             #### 余杭区规划局爬虫
             - **Windows**: `yuhang-windows.exe`
-            - **macOS (Intel)**: `yuhang-macos-intel`
-            - **macOS (Apple Silicon)**: `yuhang-macos-arm64`
+            - **macOS**: `yuhang-macos-arm64`
             - **Linux**: `yuhang-linux`
 
             ---
@@ -147,58 +145,6 @@ jobs:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: ./dist/yuhang-windows.exe
           asset_name: yuhang-windows.exe
-          asset_content_type: application/octet-stream
-
-  build-macos-intel:
-    name: Build macOS (Intel)
-    needs: create-release
-    runs-on: macos-12  # Intel runner
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
-
-      - name: Build Hangzhou executable
-        run: |
-          pyinstaller --onefile --name hangzhou-macos-intel hangzhou.py
-
-      - name: Build Yuhang executable
-        run: |
-          pyinstaller --onefile --name yuhang-macos-intel yuhang.py
-
-      - name: Make executables executable
-        run: |
-          chmod +x ./dist/hangzhou-macos-intel
-          chmod +x ./dist/yuhang-macos-intel
-
-      - name: Upload Hangzhou Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./dist/hangzhou-macos-intel
-          asset_name: hangzhou-macos-intel
-          asset_content_type: application/octet-stream
-
-      - name: Upload Yuhang Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./dist/yuhang-macos-intel
-          asset_name: yuhang-macos-intel
           asset_content_type: application/octet-stream
 
   build-macos-arm:
