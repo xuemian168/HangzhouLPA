@@ -503,15 +503,29 @@ def auto_mode(start_page: int = 1, end_page: int = 5):
 
     # 处理每个项目
     success_count = 0
+    no_files_count = 0
+    failed_count = 0
+
     for project_name, project_url in tqdm(projects, desc="处理项目"):
         try:
-            if process_project(session, project_name, project_url, base_dir):
+            result = process_project(session, project_name, project_url, base_dir)
+            if result:
                 success_count += 1
+            elif result is False:
+                failed_count += 1
         except Exception as e:
             logger.error(f"处理项目失败: {project_name}, 错误: {e}")
+            failed_count += 1
+
+    # 统计无文件项目
+    no_files_count = len(projects) - success_count - failed_count
 
     logger.info(f"=== 处理完成 ===")
-    logger.info(f"成功: {success_count}/{len(projects)} 个项目")
+    logger.info(f"总计: {len(projects)} 个项目")
+    logger.info(f"  ✓ 成功下载: {success_count} 个")
+    logger.info(f"  ✗ 下载失败: {failed_count} 个")
+    logger.info(f"  ⊘ 无可用文件: {no_files_count} 个")
+    logger.info(f"  成功率: {success_count/len(projects)*100:.1f}%")
 
 
 def manual_mode():
@@ -545,15 +559,29 @@ def manual_mode():
 
     # 处理每个项目
     success_count = 0
+    no_files_count = 0
+    failed_count = 0
+
     for project_name, project_url in tqdm(projects, desc="处理项目"):
         try:
-            if process_project(session, project_name, project_url, base_dir):
+            result = process_project(session, project_name, project_url, base_dir)
+            if result:
                 success_count += 1
+            elif result is False:
+                failed_count += 1
         except Exception as e:
             logger.error(f"处理项目失败: {project_name}, 错误: {e}")
+            failed_count += 1
+
+    # 统计无文件项目
+    no_files_count = len(projects) - success_count - failed_count
 
     logger.info(f"=== 处理完成 ===")
-    logger.info(f"成功: {success_count}/{len(projects)} 个项目")
+    logger.info(f"总计: {len(projects)} 个项目")
+    logger.info(f"  ✓ 成功下载: {success_count} 个")
+    logger.info(f"  ✗ 下载失败: {failed_count} 个")
+    logger.info(f"  ⊘ 无可用文件: {no_files_count} 个")
+    logger.info(f"  成功率: {success_count/len(projects)*100:.1f}%")
 
 
 # ========== 主程序入口 ==========
