@@ -109,14 +109,16 @@ class ProjectScraper:
         """获取所有页面的项目列表（支持翻页）"""
         print("正在获取项目列表...")
         all_projects = []
+        seen_urls = set()  # 用于检测重复项目
         page = 1
+        page_size = 15
 
         while True:
             print(f"  正在获取第 {page} 页...")
 
-            # 修改 API 参数以支持分页
+            # 使用正确的分页参数格式
             params = Config.API_PARAMS.copy()
-            params['pageNum'] = str(page)
+            params['paramJson'] = f'{{"pageNo":{page},"pageSize":"{page_size}"}}'
 
             response = self.client.get(Config.API_URL, params=params)
             if not response:
@@ -134,8 +136,20 @@ class ProjectScraper:
                 print(f"  ✓ 第 {page} 页无数据，已获取所有页面")
                 break
 
-            print(f"  ✓ 第 {page} 页找到 {len(projects)} 个项目")
-            all_projects.extend(projects)
+            # 检查是否有新项目（去重）
+            new_projects = []
+            for project in projects:
+                if project['url'] not in seen_urls:
+                    new_projects.append(project)
+                    seen_urls.add(project['url'])
+
+            if not new_projects:
+                print(f"  ✓ 第 {page} 页无新项目，已获取所有页面")
+                break
+            else:
+                print(f"  ✓ 第 {page} 页找到 {len(new_projects)} 个新项目")
+                all_projects.extend(new_projects)
+
             page += 1
 
             # 短暂延迟，避免请求过快
