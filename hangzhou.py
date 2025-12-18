@@ -8,6 +8,7 @@ import os
 import re
 import time
 import csv
+import webbrowser
 from typing import List, Dict, Optional, Tuple
 from urllib.parse import urljoin
 import requests
@@ -105,22 +106,43 @@ class ProjectScraper:
         self.parser = parser
 
     def get_project_list(self) -> List[Dict[str, str]]:
-        """获取项目列表"""
+        """获取所有页面的项目列表（支持翻页）"""
         print("正在获取项目列表...")
+        all_projects = []
+        page = 1
 
-        response = self.client.get(Config.API_URL, params=Config.API_PARAMS)
-        if not response:
-            print("✗ 无法获取项目列表")
-            return []
+        while True:
+            print(f"  正在获取第 {page} 页...")
 
-        data = response.json()
-        if not data.get('success'):
-            print(f"✗ API 返回失败: {data.get('message', '未知错误')}")
-            return []
+            # 修改 API 参数以支持分页
+            params = Config.API_PARAMS.copy()
+            params['pageNum'] = str(page)
 
-        projects = self.parser.parse_project_list(data['data']['html'])
-        print(f"✓ 找到 {len(projects)} 个项目\n")
-        return projects
+            response = self.client.get(Config.API_URL, params=params)
+            if not response:
+                print(f"  ✗ 第 {page} 页获取失败")
+                break
+
+            data = response.json()
+            if not data.get('success'):
+                print(f"  ✗ 第 {page} 页 API 返回失败: {data.get('message', '未知错误')}")
+                break
+
+            projects = self.parser.parse_project_list(data['data']['html'])
+
+            if not projects:
+                print(f"  ✓ 第 {page} 页无数据，已获取所有页面")
+                break
+
+            print(f"  ✓ 第 {page} 页找到 {len(projects)} 个项目")
+            all_projects.extend(projects)
+            page += 1
+
+            # 短暂延迟，避免请求过快
+            time.sleep(0.5)
+
+        print(f"\n✓ 总共找到 {len(all_projects)} 个项目（跨 {page-1} 页）\n")
+        return all_projects
 
     def get_image_url(self, project_url: str) -> Optional[str]:
         """获取项目设计图 URL"""
@@ -293,6 +315,9 @@ def main():
         import traceback
         traceback.print_exc()
     finally:
+        # 打开网站
+        print("\n正在打开网站...")
+        webbrowser.open('https://www.ict.run')
         input('\n按回车键退出...')
 
 
