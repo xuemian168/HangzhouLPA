@@ -49,15 +49,15 @@
 
 ### 杭州市规划局爬虫
 - **Windows**: `hangzhou-windows.exe`
-- **macOS (Intel)**: `hangzhou-macos-intel`
-- **macOS (Apple Silicon)**: `hangzhou-macos-arm64`
+- **macOS**: `hangzhou-macos-arm64` (仅支持 Apple Silicon M1/M2/M3)
 - **Linux**: `hangzhou-linux`
 
 ### 余杭区规划局爬虫
 - **Windows**: `yuhang-windows.exe`
-- **macOS (Intel)**: `yuhang-macos-intel`
-- **macOS (Apple Silicon)**: `yuhang-macos-arm64`
+- **macOS**: `yuhang-macos-arm64` (仅支持 Apple Silicon M1/M2/M3)
 - **Linux**: `yuhang-linux`
+
+**注意**: Intel Mac 用户请使用 Python 源码运行。
 
 ## 快速开始
 

@@ -34,15 +34,15 @@ rm -rf build dist *.spec
 echo ""
 echo "[步骤 3/3] 开始构建..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
+    # macOS (仅支持 Apple Silicon)
     ARCH=$(uname -m)
-    if [[ "$ARCH" == "arm64" ]]; then
-        SUFFIX="macos-arm64"
-        echo "[信息] 检测到 macOS (Apple Silicon)"
-    else
-        SUFFIX="macos-intel"
-        echo "[信息] 检测到 macOS (Intel)"
+    if [[ "$ARCH" != "arm64" ]]; then
+        echo "[错误] 仅支持 macOS Apple Silicon (M1/M2/M3)"
+        echo "[提示] Intel Mac 用户请使用 Python 源码运行"
+        exit 1
     fi
+    SUFFIX="macos-arm64"
+    echo "[信息] 检测到 macOS (Apple Silicon)"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Linux
     SUFFIX="linux"
