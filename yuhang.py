@@ -269,15 +269,15 @@ def extract_file_urls(session: requests.Session, project_url: str) -> List[Tuple
         logger.error(f"获取项目页面失败: {project_url}, 错误: {e}")
         return []
 
-    # 匹配下载链接
-    pattern = r'<a href=\"(\/module\/download[\d\D]*?)(zip|rar|pdf):?\">'
-    matches = re.finditer(pattern, html_content, re.MULTILINE)
+    # 修复：匹配完整的下载链接（包含文件扩展名）
+    pattern = r'<a href=\"(\/module\/download[^\"]*?\.(zip|rar|pdf))\"'
+    matches = re.finditer(pattern, html_content, re.MULTILINE | re.IGNORECASE)
 
     file_urls = []
     for match in matches:
-        file_path = match.group(1)
-        file_suffix = match.group(2)
-        file_url = f"{CONFIG['base_url']}{file_path}{file_suffix}"
+        file_path = match.group(1)  # 完整路径（已包含扩展名）
+        file_suffix = match.group(2).lower()  # 文件后缀
+        file_url = f"{CONFIG['base_url']}{file_path}"
         file_urls.append((file_url, file_suffix))
 
     return file_urls
