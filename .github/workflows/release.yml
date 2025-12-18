@@ -1,0 +1,189 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送 v* 标签时触发（如 v1.0.0）
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Get version
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## 杭州市规划局爬虫 ${{ steps.get_version.outputs.version }}
+
+            ### 下载说明
+            - **Windows**: 下载 `hangzhou-windows.exe`
+            - **macOS (Intel)**: 下载 `hangzhou-macos-intel`
+            - **macOS (Apple Silicon)**: 下载 `hangzhou-macos-arm64`
+            - **Linux**: 下载 `hangzhou-linux`
+
+            ### 使用方法
+            1. 下载对应系统的可执行文件
+            2. 双击运行（Windows）或在终端中运行（macOS/Linux）
+            3. 按照提示操作
+
+            ### 更新日志
+            - 完全重构，遵循 SOLID、DRY、KISS 原则
+            - 优化代码结构和错误处理
+            - 提升性能和可维护性
+          draft: false
+          prerelease: false
+
+  build-windows:
+    name: Build Windows
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile --name hangzhou-windows --icon NONE hangzhou.py
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./dist/hangzhou-windows.exe
+          asset_name: hangzhou-windows.exe
+          asset_content_type: application/octet-stream
+
+  build-macos-intel:
+    name: Build macOS (Intel)
+    needs: create-release
+    runs-on: macos-12  # Intel runner
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile --name hangzhou-macos-intel hangzhou.py
+
+      - name: Make executable
+        run: chmod +x ./dist/hangzhou-macos-intel
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./dist/hangzhou-macos-intel
+          asset_name: hangzhou-macos-intel
+          asset_content_type: application/octet-stream
+
+  build-macos-arm:
+    name: Build macOS (Apple Silicon)
+    needs: create-release
+    runs-on: macos-14  # ARM64 runner
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile --name hangzhou-macos-arm64 hangzhou.py
+
+      - name: Make executable
+        run: chmod +x ./dist/hangzhou-macos-arm64
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./dist/hangzhou-macos-arm64
+          asset_name: hangzhou-macos-arm64
+          asset_content_type: application/octet-stream
+
+  build-linux:
+    name: Build Linux
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile --name hangzhou-linux hangzhou.py
+
+      - name: Make executable
+        run: chmod +x ./dist/hangzhou-linux
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./dist/hangzhou-linux
+          asset_name: hangzhou-linux
+          asset_content_type: application/octet-stream

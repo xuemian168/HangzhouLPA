@@ -127,3 +127,20 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# 项目特定文件
+jpg/
+*.csv
+temp.txt
+jpgtemp.txt
+jpgtemp2.txt
+projectname.txt
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+desktop.ini
