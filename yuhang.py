@@ -152,15 +152,29 @@ def download_with_retry(session: requests.Session, url: str,
     for attempt in range(max_retries):
         try:
             requests.packages.urllib3.disable_warnings()
-            response = session.get(url, timeout=CONFIG['timeout'], verify=False)
+            response = session.get(url, timeout=CONFIG['timeout'], verify=False, allow_redirects=True)
+
+            # 记录重定向信息
+            if response.history:
+                logger.debug(f"发生重定向: {url} -> {response.url}")
+
             response.raise_for_status()
             return response
         except requests.RequestException as e:
-            logger.warning(f"下载失败 (尝试 {attempt + 1}/{max_retries}): {url}, 错误: {e}")
+            # 记录更详细的错误信息
+            error_msg = str(e)
+            if hasattr(e, 'response') and e.response is not None:
+                error_msg = f"{e.__class__.__name__}: {e.response.status_code} - {e.response.reason}"
+                if e.response.history:
+                    redirect_chain = ' -> '.join([r.url for r in e.response.history])
+                    error_msg += f" (重定向链: {redirect_chain} -> {e.response.url})"
+
+            logger.warning(f"下载失败 (尝试 {attempt + 1}/{max_retries}): {url[:100]}..., 错误: {error_msg}")
+
             if attempt < max_retries - 1:
                 time.sleep(CONFIG['retry_delay'] ** attempt)  # 指数退避
             else:
-                logger.error(f"下载彻底失败: {url}")
+                logger.error(f"下载彻底失败: {url[:100]}...")
                 return None
 
 
