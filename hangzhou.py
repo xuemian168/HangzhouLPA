@@ -311,10 +311,18 @@ class Application:
     @staticmethod
     def _print_header():
         """打印程序头部"""
-        print("=" * 50)
-        print("杭州市规划和自然资源局项目爬虫")
-        print("=" * 50)
-        print("© XueMian168.Com")
+        # ASCII Logo
+        print()
+        print("██  ██████ ████████    ██████  ██    ██ ███    ██ ")
+        print("██ ██         ██       ██   ██ ██    ██ ████   ██ ")
+        print("██ ██         ██       ██████  ██    ██ ██ ██  ██ ")
+        print("██ ██         ██       ██   ██ ██    ██ ██  ██ ██ ")
+        print("██  ██████    ██    ██ ██   ██  ██████  ██   ████ ")
+        print()
+        print("=" * 60)
+        print("         杭州市规划和自然资源局项目爬虫")
+        print("=" * 60)
+        print("© XueMian | https://www.ict.run")
         print()
 
     @staticmethod
